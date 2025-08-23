@@ -34,7 +34,7 @@ function initSocketServer(httpServer) {
 
   io.on("connection", async (socket) => {
     socket.on("ai-message", async (messagePayload) => {
-      //   console.log(messagePayload);
+      // console.log(messagePayload);
       // messagePayload sample
       // messagePayload = {
       //   chat = 6532t6eggd8eh2edh2iyr
@@ -50,7 +50,6 @@ function initSocketServer(httpServer) {
 
       const vectors = await generateVectors(messagePayload.content);
       //  console.log("vector generated :",vectors);
-
 
       const memory = await queryMemory({
         queryVector: vectors,
@@ -68,9 +67,7 @@ function initSocketServer(httpServer) {
         },
       });
 
-      
       console.log(memory);
-      
 
       const chatHistory = (
         await messageModel
@@ -84,14 +81,31 @@ function initSocketServer(httpServer) {
 
       // console.log("chat History :");
 
-      const response = await generateAIResponse(
-        chatHistory.map((item) => {
-          return {
-            role: item.role,
-            parts: [{ text: item.content }],
-          };
-        })
-      );
+      const stm = chatHistory.map((item) => {
+        return {
+          role: item.role,
+          parts: [{ text: item.content }],
+        };
+      });
+
+      const ltm = [
+        {
+          role: "user",
+          parts: [
+            {
+              text: `
+            these are some previous messages from the chat , use them to generate a response
+            ${memory.map((item) => item.metadata.text).join("\n")}
+            `,
+            },
+          ],
+        },
+      ];
+
+      console.log(ltm[0]);
+      console.log(stm);
+
+      const response = await generateAIResponse([...ltm, ...stm]);
 
       //response = "ai reply"
 
