@@ -41,6 +41,9 @@ function initSocketServer(httpServer) {
       //   content = "hello"
       // }
 
+
+      //db me save kiya -> vector banaya -> query kiya (taki response achha de ske) -> vector database me save kiya (pinecone)
+      //db me save kiya
       const message = await messageModel.create({
         chat: messagePayload.chat,
         user: socket.user._id, //scket.user me user ko store krke rkh rhe hain socket middleware ke through
@@ -48,15 +51,17 @@ function initSocketServer(httpServer) {
         role: "user",
       });
 
+      //vector banaya
       const vectors = await generateVectors(messagePayload.content);
-      //  console.log("vector generated :",vectors);
 
+      //query kar liya
       const memory = await queryMemory({
         queryVector: vectors,
         limit: 3,
         metadata: {},
       });
 
+      //pinecone me save kiya
       await createMemory({
         vectors,
         messageId: message._id,
@@ -67,8 +72,10 @@ function initSocketServer(httpServer) {
         },
       });
 
-      console.log(memory);
+      console.log(memory); //related result ayega us topic se
 
+
+      //short term memory banaya - 20 recent chats tk
       const chatHistory = (
         await messageModel
           .find({
@@ -79,8 +86,7 @@ function initSocketServer(httpServer) {
           .lean()
       ).reverse();
 
-      // console.log("chat History :");
-
+      //gemini me stm bhejne ke format me change kiya (only role and parts)
       const stm = chatHistory.map((item) => {
         return {
           role: item.role,
