@@ -87,6 +87,7 @@ function initSocketServer(httpServer) {
       });
 */
 
+
       // 3 & 4: query memory + save vectors parallel
       const [memory] = await Promise.all([
         queryMemory({
