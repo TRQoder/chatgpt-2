@@ -1,5 +1,9 @@
+import axios from "../api/axiosConfig";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+
 
 export default function Login() {
   const {
@@ -7,9 +11,19 @@ export default function Login() {
     handleSubmit,
     formState: { errors },
   } = useForm();
+  const navigate = useNavigate()
 
-  const onSubmit = (data) => {
-    console.log("Login Data:", data);
+  const onSubmit = async(data) => {
+    try {
+      const res = await axios.post("/api/auth/login",data);
+      toast.success(res.data.message)
+      navigate("/")
+      
+    } catch (error) {
+      toast.error(error.response.data.message);
+      
+    }
+    
   };
 
   return (

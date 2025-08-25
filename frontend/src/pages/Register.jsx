@@ -1,5 +1,8 @@
+import axios from "../api/axiosConfig";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 export default function Register() {
   const {
@@ -8,9 +11,28 @@ export default function Register() {
     watch,
     formState: { errors },
   } = useForm();
+const navigate = useNavigate()
+  const onSubmit = async (data) => {
+    const registerData = {
+      email: data.email,
+      fullName: {
+        firstName: data.firstName,
+        lastName: data.lastName
+      },
+      password: data.password
+    }
+    console.log(registerData);
+    try {
+      const res = await axios.post("/api/auth/register", registerData)
+      toast.success(res.data.message)
+      navigate("/")
 
-  const onSubmit = (data) => {
-    console.log("Form Data:", data);
+
+    } catch (error) {
+      toast.error(error.response.data.message);
+    }
+
+
   };
 
   return (
@@ -96,10 +118,10 @@ export default function Register() {
               placeholder="********"
               {...register("password", {
                 required: "Password is required",
-                minLength: {
-                  value: 6,
-                  message: "Password must be at least 6 characters",
-                },
+                // minLength: {
+                //   value: 6,
+                //   message: "Password must be at least 6 characters",
+                // },
               })}
               className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 outline-none"
             />

@@ -169,7 +169,7 @@ export default function Home() {
           return { ...c, messages: msgs, title };
         })
       );
-    }, 650);
+    }, 2000);
   }, [activeId, input]);
 
   const handleKeyDown = (e) => {
@@ -264,7 +264,7 @@ export default function Home() {
                   <PanelLeftOpen className="h-5 w-5" />
                 )}
               </button>
-              <span className="font-medium">ChatGPT UI</span>
+              <span className="font-medium">ChatGPT</span>
             </div>
             <div className="hidden md:flex items-center gap-2">
               
