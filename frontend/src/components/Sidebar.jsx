@@ -35,13 +35,13 @@ export default function Sidebar({
             <Plus className="h-4 w-4" />
             <span className="hidden md:inline">New chat</span>
           </button>
-          <button
+          {/* <button
             onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
             aria-label="Toggle theme"
             className="rounded-xl border border-zinc-300 dark:border-zinc-700 p-2 text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800"
           >
             {theme === "dark" ? "🌙" : "☀️"}
-          </button>
+          </button> */}
         </div>
         <div className="px-2 pb-4 overflow-y-auto h-[calc(100dvh-4rem)]">
           {conversations.map((c) => (

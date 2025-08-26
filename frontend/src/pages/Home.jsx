@@ -59,8 +59,8 @@ export default function Home() {
 
   // Handlers
   const createChat = () => {
-    
-    const chat = { id: crypto.randomUUID(), title: "New chat", messages: [] };
+    const chatTitle = prompt("Enter title of the Chat");
+    const chat = { id: crypto.randomUUID(), title: chatTitle, messages: [] };
     setConversations((prev) => [chat, ...prev]);
     setActiveId(chat.id);
   }
@@ -93,8 +93,8 @@ export default function Home() {
 
     const userMsg = { id: crypto.randomUUID(), role: "user", content: trimmed };
     const thinkingMsg = {
-      id: ID(),
-      role: "assistcrypto.randomUUant",
+      id: crypto.randomUUID(),
+      role: "assistant",
       content: "Thinking…",
     };
 
