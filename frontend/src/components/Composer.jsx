@@ -3,7 +3,7 @@ import { Send } from "lucide-react";
 
 export default function Composer({ textareaRef, input, setInput, handleKeyDown, send }) {
   return (
-    <div className="sticky bottom-0 z-10 border-t border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/70 backdrop-blur supports-[backdrop-filter]:bg-white/60 supports-[backdrop-filter]:dark:bg-zinc-900/50">
+    <div className="sticky bottom-0 z-10">
       <div className="max-w-3xl mx-auto px-3 md:px-6 py-3" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 12px)" }}>
         <div className="flex items-end gap-2">
           <textarea

@@ -15,9 +15,25 @@ async function createChat(req, res) {
       _id: chat._id,
       title: chat._title,
       lastActivity: chat.lastActivity,
-      user:chat.user
+      user: chat.user,
     },
   });
 }
 
-module.exports = { createChat };
+async function getAllChats(req, res) {
+  const user = req.user;
+  if (!user) {
+    return res.status(401).json({
+      message: "Unauthorized",
+    });
+  }
+  const chats = await chatModel
+    .find({ user: user._id })
+    .sort({ createdAt: -1 });
+  res.status(200).json({
+    message: "Chats fetched successfully",
+    chats,
+  });
+}
+
+module.exports = { createChat, getAllChats };

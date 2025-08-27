@@ -12,7 +12,7 @@ export default function Messages({ messages }) {
         )}
 
         {messages?.map((m) => (
-          <div key={m.id} className="w-full">
+          <div key={m._id} className="w-full">
             <div className="grid grid-cols-[auto,1fr] gap-3 md:gap-4 py-4">
               <div
                 className={classNames(

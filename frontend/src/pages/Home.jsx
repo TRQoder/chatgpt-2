@@ -4,14 +4,17 @@ import TopBar from "../components/TopBar";
 import Messages from "../components/Messages";
 import Composer from "../components/Composer";
 import { classNames, useAutoResize, formatTitle } from "../utils/ui";
+import axios from "../api/axiosConfig";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const starterConversations = [
   {
-    id: crypto.randomUUID(),
+    _id: crypto.randomUUID(),
     title: "New chat",
     messages: [
       {
-        id: crypto.randomUUID(),
+        _id: crypto.randomUUID(),
         role: "assistant",
         content: "Hi! I’m your AI assistant. Ask me anything ✨",
       },
@@ -20,14 +23,18 @@ const starterConversations = [
 ];
 
 export default function Home() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [theme, setTheme] = useState(
     () => localStorage.getItem("theme") || "dark"
   );
   const [conversations, setConversations] = useState(starterConversations);
-  const [activeId, setActiveId] = useState(starterConversations[0].id);
+  const [activeId, setActiveId] = useState(starterConversations[0]._id);
+  const navigate = useNavigate();
+
   const active = useMemo(
-    () => conversations.find((c) => c.id === activeId),
+    () => conversations.find((c) => c._id === activeId),
     [conversations, activeId]
   );
 
@@ -36,18 +43,7 @@ export default function Home() {
   const textareaRef = useRef(null);
   useAutoResize(textareaRef, { minRows: 1, maxRows: 6 });
 
-  // Scroll to bottom on message change (debounced for smoothness)
   const bottomRef = useRef(null);
-  useEffect(() => {
-    const t = setTimeout(
-      () =>
-        bottomRef.current?.scrollIntoView({
-          behavior: "smooth",
-        }),
-      50
-    );
-    return () => clearTimeout(t);
-  }, [active?.messages.length]);
 
   // Theme persistence
   useEffect(() => {
@@ -59,27 +55,27 @@ export default function Home() {
 
   // Handlers
   const createChat = () => {
-    const chatTitle = prompt("Enter title of the Chat");
-    const chat = { id: crypto.randomUUID(), title: chatTitle, messages: [] };
+    const chatTitle = prompt("Enter title of the Chat") || "New chat";
+    const chat = { _id: crypto.randomUUID(), title: chatTitle, messages: [] };
     setConversations((prev) => [chat, ...prev]);
-    setActiveId(chat.id);
-  }
+    setActiveId(chat._id);
+  };
 
   const deleteChat = useCallback(
     (id) => {
       setConversations((prev) => {
-        const filtered = prev.filter((c) => c.id !== id);
+        const filtered = prev.filter((c) => c._id !== id);
         if (filtered.length === 0) {
           const newChat = {
-            id: crypto.randomUUID(),
+            _id: crypto.randomUUID(),
             title: "New chat",
             messages: [],
           };
-          setActiveId(newChat.id);
+          setActiveId(newChat._id); // ✅ fixed
           return [newChat];
         }
         if (id === activeId) {
-          setActiveId(filtered[0].id);
+          setActiveId(filtered[0]._id); // ✅ fixed
         }
         return filtered;
       });
@@ -91,32 +87,32 @@ export default function Home() {
     const trimmed = input.trim();
     if (!trimmed) return;
 
-    const userMsg = { id: crypto.randomUUID(), role: "user", content: trimmed };
+    const userMsg = { _id: crypto.randomUUID(), role: "user", content: trimmed };
     const thinkingMsg = {
-      id: crypto.randomUUID(),
+      _id: crypto.randomUUID(),
       role: "assistant",
       content: "Thinking…",
     };
 
     setConversations((prev) =>
       prev.map((c) =>
-        c.id === activeId
+        c._id === activeId
           ? { ...c, messages: [...(c.messages || []), userMsg, thinkingMsg] }
           : c
       )
     );
     setInput("");
 
-    // Fake response to mimic ChatGPT typing
+    // Fake response
     setTimeout(() => {
       setConversations((prev) =>
         prev.map((c) => {
-          if (c.id !== activeId) return c;
+          if (c._id !== activeId) return c;
           const msgs = [...c.messages];
-          const idx = msgs.findIndex((m) => m.id === thinkingMsg.id);
+          const idx = msgs.findIndex((m) => m._id === thinkingMsg._id);
           if (idx !== -1)
             msgs[idx] = {
-              id: crypto.randomUUID(),
+              _id: crypto.randomUUID(),
               role: "assistant",
               content: `You said: "${trimmed}". Here's a concise response.\n\n- Point 1\n- Point 2\n\n_(This is a local mock — wire this up to your backend or OpenAI API.)_`,
             };
@@ -135,6 +131,47 @@ export default function Home() {
     }
   };
 
+  //logout function
+  const onLogout = async () => {
+    try {
+      const res = await axios.get("/api/auth/logout");
+      toast.success(res.data.message);
+      navigate("/login");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Logout failed");
+    }
+  };
+
+  // fetch user loggedin or not and chats
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await axios.get("/api/auth/me");
+        setUser(res.data.user);
+
+        const chatRes = await axios.get("/api/chat/getChats");
+        if (chatRes.data.chats.length) {
+          setConversations(chatRes.data.chats);
+          setActiveId(chatRes.data.chats[0]._id);
+        }
+      } catch (error) {
+        setUser(null);
+        navigate("/login");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-950 text-gray-100">
+        Loading...
+      </div>
+    );
+  }
   return (
     <div className="h-dvh w-screen bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 flex overflow-hidden">
       <Sidebar
@@ -146,6 +183,7 @@ export default function Home() {
         theme={theme}
         setTheme={setTheme}
         sidebarOpen={sidebarOpen}
+        onLogout={onLogout}
       />
 
       <main className="flex-1 flex flex-col">

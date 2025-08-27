@@ -1,4 +1,4 @@
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, LogOut } from "lucide-react";
 import { classNames } from "../utils/ui";
 
 export default function Sidebar({
@@ -10,62 +10,77 @@ export default function Sidebar({
   theme,
   setTheme,
   sidebarOpen,
+  onLogout,
 }) {
   return (
     <aside
       className={classNames(
-        "border-r border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 backdrop-blur supports-[backdrop-filter]:bg-white/50 supports-[backdrop-filter]:dark:bg-zinc-900/40",
+        "border-r border-zinc-200 dark:border-zinc-800",
         "transition-all duration-300 ease-in-out",
         sidebarOpen ? "w-72" : "w-0"
       )}
     >
       <div
         className={classNames(
-          "h-full",
+          "h-full flex flex-col", // <-- make it column layout
           sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none",
           "transition-opacity duration-300"
         )}
       >
+        {/* Header */}
         <div className="h-16 px-4 flex items-center justify-between">
           <button
             onClick={createChat}
             aria-label="New chat"
-            className="inline-flex items-center gap-2 rounded-2xl border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              onMouseDown={(e) => e.preventDefault()}
+              className="inline-flex items-center gap-2 rounded-2xl border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 select-none"
           >
             <Plus className="h-4 w-4" />
             <span className="hidden md:inline">New chat</span>
           </button>
-          {/* <button
-            onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
-            aria-label="Toggle theme"
-            className="rounded-xl border border-zinc-300 dark:border-zinc-700 p-2 text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800"
-          >
-            {theme === "dark" ? "🌙" : "☀️"}
-          </button> */}
         </div>
-        <div className="px-2 pb-4 overflow-y-auto h-[calc(100dvh-4rem)]">
+
+        {/* Conversations list (scrollable) */}
+        <div className="px-2 pb-4 overflow-y-auto flex-1">
           {conversations.map((c) => (
             <div
-              key={c.id}
+              key={c._id}
+              onClick={() => setActiveId(c._id)}
               className={classNames(
                 "group flex items-center justify-between gap-2 rounded-xl px-3 py-2 mb-1 cursor-pointer",
-                c.id === activeId
+                c._id === activeId
                   ? "bg-zinc-100 dark:bg-zinc-800"
                   : "hover:bg-zinc-100/60 dark:hover:bg-zinc-800/60"
               )}
             >
-              <button onClick={() => setActiveId(c.id)} className="flex-1 text-left truncate text-sm">
+              <button
+                onMouseDown={(e) => e.preventDefault()}
+                className="flex-1 text-left truncate text-sm select-none"
+              >
                 {c.title}
               </button>
               <button
-                onClick={() => deleteChat(c.id)}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => deleteChat(c._id)}
                 aria-label="Delete chat"
-                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 select-none"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
             </div>
           ))}
+        </div>
+
+        {/* Footer (Logout button) */}
+        <div className="p-4 border-t border-zinc-200 dark:border-zinc-800">
+          <button
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={onLogout}
+            className="w-full flex items-center gap-2 rounded-xl border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800 select-none"
+          >
+            <LogOut className="h-4 w-4" />
+            <span>Logout</span>
+          </button>
         </div>
       </div>
     </aside>
